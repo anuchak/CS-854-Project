@@ -1,0 +1,1 @@
+/cvmfs/soft.computecanada.ca/custom/bin/cc -O3 -DNDEBUG CMakeFiles/wrjpgcom.dir/src/wrjpgcom.c.o -o wrjpgcom  -Wl,-rpath,:::::::::::::::::::::::::::::: 

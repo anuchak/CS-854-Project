@@ -1,0 +1,2 @@
+set(CMAKE_ASM_NASM_COMPILER "/cvmfs/soft.computecanada.ca/gentoo/2023/x86-64-v3/usr/bin/nasm")
+

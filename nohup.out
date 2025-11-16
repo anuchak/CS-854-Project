@@ -1,0 +1,31 @@
+Traceback (most recent call last):
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/bin/vllm", line 3, in <module>
+    from vllm.entrypoints.cli.main import main
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/entrypoints/cli/__init__.py", line 3, in <module>
+    from vllm.entrypoints.cli.benchmark.latency import BenchmarkLatencySubcommand
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/entrypoints/cli/benchmark/latency.py", line 5, in <module>
+    from vllm.benchmarks.latency import add_cli_args, main
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/benchmarks/latency.py", line 18, in <module>
+    from vllm.engine.arg_utils import EngineArgs
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/engine/arg_utils.py", line 24, in <module>
+    from vllm.config import (BlockSize, CacheConfig, CacheDType, CompilationConfig,
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/config/__init__.py", line 32, in <module>
+    from vllm.config.cache import (BlockSize, CacheConfig, CacheDType, MambaDType,
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/config/cache.py", line 15, in <module>
+    from vllm.utils import GiB_bytes, get_cpu_memory
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/vllm/utils/__init__.py", line 70, in <module>
+    from transformers.tokenization_utils_base import BatchEncoding
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/transformers/__init__.py", line 958, in <module>
+    import_structure = define_import_structure(Path(__file__).parent / "models", prefix="models")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/transformers/utils/import_utils.py", line 2867, in define_import_structure
+    import_structure = create_import_structure_from_path(module_path)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/transformers/utils/import_utils.py", line 2580, in create_import_structure_from_path
+    import_structure[f] = create_import_structure_from_path(os.path.join(module_path, f))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project/6105512/abtinmy/CS-854-Project/vllm_311/lib/python3.11/site-packages/transformers/utils/import_utils.py", line 2605, in create_import_structure_from_path
+    file_content = f.read()
+                   ^^^^^^^^
+  File "<frozen codecs>", line 319, in decode
+KeyboardInterrupt
