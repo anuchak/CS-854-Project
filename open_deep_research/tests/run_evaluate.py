@@ -1,4 +1,7 @@
 import os
+
+from open_deep_research.src.open_deep_research.deep_researcher import deep_researcher
+
 os.environ["OPENAI_API_KEY"] = "dummy"
 os.environ["OPENAI_API_BASE"] = "http://localhost:8000/v1"
 
@@ -7,7 +10,7 @@ from langsmith import Client
 #from tests.evaluators import eval_overall_quality, eval_relevance, eval_structure, eval_correctness, eval_groundedness, eval_completeness
 from dotenv import load_dotenv
 import asyncio
-from open_deep_research.deep_researcher import deep_researcher_builder
+from open_deep_research.src.open_deep_research.deep_researcher import deep_researcher_builder
 from langgraph.checkpoint.memory import MemorySaver
 import uuid
 from vllm import LLM

@@ -1,6 +1,8 @@
 """Main LangGraph implementation for the Deep Research agent."""
 
 import asyncio
+import functools
+import inspect
 from typing import Literal
 
 from langchain.chat_models import init_chat_model
@@ -16,10 +18,10 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
-from open_deep_research.configuration import (
+from configuration import (
     Configuration,
 )
-from open_deep_research.prompts import (
+from prompts import (
     clarify_with_user_instructions,
     compress_research_simple_human_message,
     compress_research_system_prompt,
@@ -28,7 +30,7 @@ from open_deep_research.prompts import (
     research_system_prompt,
     transform_messages_into_research_topic_prompt,
 )
-from open_deep_research.state import (
+from state import (
     AgentInputState,
     AgentState,
     ClarifyWithUser,
@@ -39,7 +41,7 @@ from open_deep_research.state import (
     ResearchQuestion,
     SupervisorState,
 )
-from open_deep_research.utils import (
+from utils import (
     anthropic_websearch_called,
     get_all_tools,
     get_api_key_for_model,
@@ -51,12 +53,42 @@ from open_deep_research.utils import (
     remove_up_to_last_ai_message,
     think_tool,
 )
+import time
+
+def timeit(func):
+
+    def wrap_s(f):
+        @functools.wraps(f)
+        def wrapper_sync(*args, **kwargs):
+            start = time.perf_counter_ns()
+            result = func(*args, **kwargs)
+            end = time.perf_counter_ns()
+            print(f"{func.__name__} took {(end - start) / 1000000:.3f} ms")
+            return result
+        return wrapper_sync
+
+    def wrap_as(f):
+        @functools.wraps(f)
+        async def wrapper_async(*args, **kwargs):
+            start = time.perf_counter_ns()
+            result = await func(*args, **kwargs)
+            end = time.perf_counter_ns()
+            print(f"{func.__name__} took {(end - start) / 1000000:.3f} ms")
+            return result
+        return wrapper_async
+
+    if inspect.iscoroutinefunction(func):
+        return wrap_as(func)
+    else:
+        return wrap_s(func)
+
 
 # Initialize a configurable model that we will use throughout the agent
 configurable_model = init_chat_model(
     configurable_fields=("model", "max_tokens", "api_key"),
 )
 
+@timeit
 async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Command[Literal["write_research_brief", "__end__"]]:
     """Analyze user messages and ask clarifying questions if the research scope is unclear.
     
@@ -114,7 +146,7 @@ async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Comman
             update={"messages": [AIMessage(content=response.verification)]}
         )
 
-
+@timeit
 async def write_research_brief(state: AgentState, config: RunnableConfig) -> Command[Literal["research_supervisor"]]:
     """Transform user messages into a structured research brief and initialize supervisor.
     
@@ -174,7 +206,7 @@ async def write_research_brief(state: AgentState, config: RunnableConfig) -> Com
         }
     )
 
-
+@timeit
 async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[Literal["supervisor_tools"]]:
     """Lead research supervisor that plans research strategy and delegates to researchers.
     
@@ -222,6 +254,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
         }
     )
 
+@timeit
 async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Command[Literal["supervisor", "__end__"]]:
     """Execute tools called by the supervisor, including research delegation and strategic thinking.
     
@@ -362,6 +395,7 @@ supervisor_builder.add_edge(START, "supervisor")  # Entry point to supervisor
 # Compile supervisor subgraph for use in main workflow
 supervisor_subgraph = supervisor_builder.compile()
 
+@timeit
 async def researcher(state: ResearcherState, config: RunnableConfig) -> Command[Literal["researcher_tools"]]:
     """Individual researcher that conducts focused research on specific topics.
     
@@ -424,6 +458,7 @@ async def researcher(state: ResearcherState, config: RunnableConfig) -> Command[
     )
 
 # Tool Execution Helper Function
+@timeit
 async def execute_tool_safely(tool, args, config):
     """Safely execute a tool with error handling."""
     try:
@@ -431,7 +466,7 @@ async def execute_tool_safely(tool, args, config):
     except Exception as e:
         return f"Error executing tool: {str(e)}"
 
-
+@timeit
 async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Command[Literal["researcher", "compress_research"]]:
     """Execute tools called by the researcher, including search tools and strategic thinking.
     
@@ -508,6 +543,7 @@ async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Co
         update={"researcher_messages": tool_outputs}
     )
 
+@timeit
 async def compress_research(state: ResearcherState, config: RunnableConfig):
     """Compress and synthesize research findings into a concise, structured summary.
     
@@ -604,6 +640,7 @@ researcher_builder.add_edge("compress_research", END)      # Exit point after co
 # Compile researcher subgraph for parallel execution by supervisor
 researcher_subgraph = researcher_builder.compile()
 
+@timeit
 async def final_report_generation(state: AgentState, config: RunnableConfig):
     """Generate the final comprehensive research report with retry logic for token limits.
     

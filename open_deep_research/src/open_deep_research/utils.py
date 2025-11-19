@@ -29,9 +29,10 @@ from langgraph.config import get_store
 from mcp import McpError
 from tavily import AsyncTavilyClient
 
-from open_deep_research.configuration import Configuration, SearchAPI
-from open_deep_research.prompts import summarize_webpage_prompt
-from open_deep_research.state import ResearchComplete, Summary
+from configuration import Configuration, SearchAPI
+from open_deep_research.src.open_deep_research.deep_researcher import timeit
+from prompts import summarize_webpage_prompt
+from state import ResearchComplete, Summary
 
 ##########################
 # Tavily Search Tool Utils
@@ -40,6 +41,8 @@ TAVILY_SEARCH_DESCRIPTION = (
     "A search engine optimized for comprehensive, accurate, and trusted results. "
     "Useful for when you need to answer questions about current events."
 )
+
+@timeit
 @tool(description=TAVILY_SEARCH_DESCRIPTION)
 async def tavily_search(
     queries: List[str],
@@ -135,6 +138,7 @@ async def tavily_search(
     
     return formatted_output
 
+@timeit
 async def tavily_search_async(
     search_queries, 
     max_results: int = 5, 
@@ -172,6 +176,7 @@ async def tavily_search_async(
     search_results = await asyncio.gather(*search_tasks)
     return search_results
 
+@timeit
 async def summarize_webpage(model: BaseChatModel, webpage_content: str) -> str:
     """Summarize webpage content using AI model with timeout protection.
     
@@ -216,6 +221,7 @@ async def summarize_webpage(model: BaseChatModel, webpage_content: str) -> str:
 # Reflection Tool Utils
 ##########################
 
+@timeit
 @tool(description="Strategic reflection tool for research planning")
 def think_tool(reflection: str) -> str:
     """Tool for strategic reflection on research progress and decision-making.
