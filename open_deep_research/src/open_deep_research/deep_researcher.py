@@ -1,8 +1,6 @@
 """Main LangGraph implementation for the Deep Research agent."""
 
 import asyncio
-import functools
-import inspect
 from typing import Literal
 
 from langchain.chat_models import init_chat_model
@@ -18,10 +16,10 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
-from configuration import (
+from open_deep_research.configuration import (
     Configuration,
 )
-from prompts import (
+from open_deep_research.prompts import (
     clarify_with_user_instructions,
     compress_research_simple_human_message,
     compress_research_system_prompt,
@@ -30,7 +28,7 @@ from prompts import (
     research_system_prompt,
     transform_messages_into_research_topic_prompt,
 )
-from state import (
+from open_deep_research.state import (
     AgentInputState,
     AgentState,
     ClarifyWithUser,
@@ -41,7 +39,8 @@ from state import (
     ResearchQuestion,
     SupervisorState,
 )
-from utils import (
+from open_deep_research.utils import (
+    timeit,
     anthropic_websearch_called,
     get_all_tools,
     get_api_key_for_model,
@@ -53,35 +52,6 @@ from utils import (
     remove_up_to_last_ai_message,
     think_tool,
 )
-import time
-
-def timeit(func):
-
-    def wrap_s(f):
-        @functools.wraps(f)
-        def wrapper_sync(*args, **kwargs):
-            start = time.perf_counter_ns()
-            result = func(*args, **kwargs)
-            end = time.perf_counter_ns()
-            print(f"{func.__name__} took {(end - start) / 1000000:.3f} ms")
-            return result
-        return wrapper_sync
-
-    def wrap_as(f):
-        @functools.wraps(f)
-        async def wrapper_async(*args, **kwargs):
-            start = time.perf_counter_ns()
-            result = await func(*args, **kwargs)
-            end = time.perf_counter_ns()
-            print(f"{func.__name__} took {(end - start) / 1000000:.3f} ms")
-            return result
-        return wrapper_async
-
-    if inspect.iscoroutinefunction(func):
-        return wrap_as(func)
-    else:
-        return wrap_s(func)
-
 
 # Initialize a configurable model that we will use throughout the agent
 configurable_model = init_chat_model(

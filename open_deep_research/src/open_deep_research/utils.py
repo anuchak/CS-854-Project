@@ -29,10 +29,45 @@ from langgraph.config import get_store
 from mcp import McpError
 from tavily import AsyncTavilyClient
 
-from configuration import Configuration, SearchAPI
-from open_deep_research.src.open_deep_research.deep_researcher import timeit
-from prompts import summarize_webpage_prompt
-from state import ResearchComplete, Summary
+from open_deep_research.configuration import Configuration, SearchAPI
+from open_deep_research.prompts import summarize_webpage_prompt
+from open_deep_research.state import ResearchComplete, Summary
+import time
+import inspect
+import functools
+import threading
+
+
+def timeit(func):
+    if inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def wrapper_async(*args, **kwargs):
+            thread_id = threading.get_ident()
+            start = time.perf_counter_ns()
+            result = await func(*args, **kwargs)
+            end = time.perf_counter_ns()
+            print(
+                f"[thread {thread_id}] {func.__name__} took {(end - start) / 1_000_000:.3f} ms"
+            )
+            return result
+
+        return wrapper_async
+
+    else:
+
+        @functools.wraps(func)
+        def wrapper_sync(*args, **kwargs):
+            thread_id = threading.get_ident()
+            start = time.perf_counter_ns()
+            result = func(*args, **kwargs)
+            end = time.perf_counter_ns()
+            print(
+                f"[thread {thread_id}] {func.__name__} took {(end - start) / 1_000_000:.3f} ms"
+            )
+            return result
+
+        return wrapper_sync
 
 ##########################
 # Tavily Search Tool Utils
@@ -42,8 +77,8 @@ TAVILY_SEARCH_DESCRIPTION = (
     "Useful for when you need to answer questions about current events."
 )
 
-@timeit
 @tool(description=TAVILY_SEARCH_DESCRIPTION)
+@timeit
 async def tavily_search(
     queries: List[str],
     max_results: Annotated[int, InjectedToolArg] = 5,
@@ -221,8 +256,8 @@ async def summarize_webpage(model: BaseChatModel, webpage_content: str) -> str:
 # Reflection Tool Utils
 ##########################
 
-@timeit
 @tool(description="Strategic reflection tool for research planning")
+@timeit
 def think_tool(reflection: str) -> str:
     """Tool for strategic reflection on research progress and decision-making.
 
@@ -247,6 +282,7 @@ def think_tool(reflection: str) -> str:
     Returns:
         Confirmation that reflection was recorded for decision-making
     """
+    print(f"Reflection recorded: {reflection}")
     return f"Reflection recorded: {reflection}"
 
 ##########################
